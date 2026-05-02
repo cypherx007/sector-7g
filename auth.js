@@ -70,20 +70,24 @@
     const u = await getUser();
     if (!u) throw new Error("Not signed in.");
     const { data, error } = await client.from("reviews").insert({
-      user_id:     u.id,
-      when_at:     r.when_at,
-      where_at:    r.where_at,
-      with_who:    r.with_who,
-      drinks:      r.drinks,
-      drink_type:  r.drink_type,
-      mood_before: r.mood_before,
-      mood_after:  r.mood_after,
-      behaviour:   r.behaviour,
-      sex:         r.sex,
-      partner:     r.partner || null,
-      memory:      r.memory,
-      regret:      r.regret,
-      notes:       r.notes || null,
+      user_id:         u.id,
+      when_at:         r.when_at,
+      where_at:        r.where_at,
+      with_who:        r.with_who,
+      drinks:          r.drinks,
+      drink_type:      r.drink_type,
+      mood_before:     r.mood_before,
+      mood_after:      r.mood_after,
+      behaviour:       r.behaviour,
+      treatment:       r.treatment || null,
+      conflict:        r.conflict || null,
+      regretted_words: r.regretted_words || null,
+      embarrassment:   r.embarrassment || null,
+      sex:             r.sex,
+      partner:         r.partner || null,
+      memory:          r.memory,
+      regret:          r.regret,
+      notes:           r.notes || null,
     }).select().single();
     if (error) throw error;
     return data;

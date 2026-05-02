@@ -206,6 +206,58 @@
                 </div>
 
                 <div class="field">
+                  <label for="rv-treatment">How you treated them</label>
+                  <select id="rv-treatment" required>
+                    <option value="">— select —</option>
+                    <option>Warm</option>
+                    <option>Flirty</option>
+                    <option>Clingy / needy</option>
+                    <option>Argued</option>
+                    <option>Cried with them</option>
+                    <option>Ignored them</option>
+                    <option>Fought them</option>
+                    <option>Don't remember</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="rv-conflict">Conflict level</label>
+                  <select id="rv-conflict" required>
+                    <option value="">— select —</option>
+                    <option>None</option>
+                    <option>Verbal argument</option>
+                    <option>Yelling</option>
+                    <option>Physical fight</option>
+                    <option>Cried</option>
+                    <option>Cold / silent</option>
+                    <option>Don't remember</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="rv-regretted-words">Said anything regretful?</label>
+                  <select id="rv-regretted-words" required>
+                    <option value="">— select —</option>
+                    <option>None</option>
+                    <option>Confessed feelings</option>
+                    <option>Mean things</option>
+                    <option>Overshared / TMI</option>
+                    <option>Lies</option>
+                    <option>Don't remember</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="rv-embarrassment">Embarrassment level</label>
+                  <select id="rv-embarrassment" required>
+                    <option value="">— select —</option>
+                    <option>None</option>
+                    <option>Minor</option>
+                    <option>Major</option>
+                    <option>Caused a scene</option>
+                    <option>Don't remember</option>
+                  </select>
+                </div>
+
+                <div class="field">
                   <label for="rv-sex">Sexual activity</label>
                   <select id="rv-sex" required>
                     <option value="">— select —</option>
@@ -424,11 +476,15 @@
           <div class="body">
             <strong>${escape(r.drinks)} × ${escape(r.drink_type)}</strong> with ${escape(r.with_who)}.
             Mood ${escape(r.mood_before)} → ${escape(r.mood_after)}.
-            Behaviour: ${escape(r.behaviour)}. Memory: ${escape(r.memory)}.
+            Behaviour: ${escape(r.behaviour)}. Treated them: ${escape(r.treatment || "—")}.
+            Conflict: ${escape(r.conflict || "—")}. Regretful words: ${escape(r.regretted_words || "—")}.
+            Embarrassment: ${escape(r.embarrassment || "—")}. Memory: ${escape(r.memory)}.
             Sexual activity: ${escape(r.sex)}${partner}.
           </div>
           <div class="tags">
             <span class="tag">${escape(r.behaviour)}</span>
+            ${r.treatment ? `<span class="tag">${escape(r.treatment)}</span>` : ""}
+            ${r.conflict && r.conflict !== "None" ? `<span class="tag">${escape(r.conflict)}</span>` : ""}
             <span class="tag">${escape(r.memory)}</span>
             <span class="tag">${escape(r.sex)}</span>
           </div>
@@ -462,19 +518,23 @@
 
     const whenLocal = document.getElementById("rv-when").value;
     const entry = {
-      when_at:     new Date(whenLocal).toISOString(),
-      where_at:    document.getElementById("rv-where").value.trim(),
-      with_who:    document.getElementById("rv-with").value.trim(),
-      drinks:      parseInt(document.getElementById("rv-drinks").value, 10) || 0,
-      drink_type:  document.getElementById("rv-type").value,
-      mood_before: document.getElementById("rv-mood-before").value,
-      mood_after:  document.getElementById("rv-mood-after").value,
-      behaviour:   document.getElementById("rv-behaviour").value,
-      sex:         document.getElementById("rv-sex").value,
-      partner:     document.getElementById("rv-partner").value.trim(),
-      memory:      document.getElementById("rv-memory").value,
-      regret:      parseInt(rvRegret.value, 10),
-      notes:       document.getElementById("rv-notes").value.trim(),
+      when_at:         new Date(whenLocal).toISOString(),
+      where_at:        document.getElementById("rv-where").value.trim(),
+      with_who:        document.getElementById("rv-with").value.trim(),
+      drinks:          parseInt(document.getElementById("rv-drinks").value, 10) || 0,
+      drink_type:      document.getElementById("rv-type").value,
+      mood_before:     document.getElementById("rv-mood-before").value,
+      mood_after:      document.getElementById("rv-mood-after").value,
+      behaviour:       document.getElementById("rv-behaviour").value,
+      treatment:       document.getElementById("rv-treatment").value,
+      conflict:        document.getElementById("rv-conflict").value,
+      regretted_words: document.getElementById("rv-regretted-words").value,
+      embarrassment:   document.getElementById("rv-embarrassment").value,
+      sex:             document.getElementById("rv-sex").value,
+      partner:         document.getElementById("rv-partner").value.trim(),
+      memory:          document.getElementById("rv-memory").value,
+      regret:          parseInt(rvRegret.value, 10),
+      notes:           document.getElementById("rv-notes").value.trim(),
     };
 
     try {
