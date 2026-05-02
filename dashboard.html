@@ -131,6 +131,14 @@
               <div id="rv-flags"></div>
             </div>
 
+            <div class="form-toggle-row">
+              <button type="button" class="ghost-btn" id="rv-open-btn">+ New Manual Review</button>
+            </div>
+
+            <div class="form-cancel-row" id="rv-cancel-row" style="display:none;">
+              <button type="button" class="cancel-btn" id="rv-cancel-btn">&larr; Close form</button>
+            </div>
+
             <form id="reviewForm" autocomplete="off">
               <div class="grid2">
                 <div class="field">
@@ -336,6 +344,22 @@
     </footer>
   </div>
 
+  <!-- Submitted modal -->
+  <div class="modal-overlay" id="submitted-modal">
+    <div class="modal">
+      <span class="stamp">Filed</span>
+      <h3>Review Filed</h3>
+      <div class="sub">// Debrief logged to secure record.</div>
+      <p>Your review has been transmitted and stored on the encrypted channel.</p>
+      <div class="info">
+        <div><span class="ok">&#10003;</span> Pending notification cleared</div>
+        <div><span class="ok">&#10003;</span> Flag updated in your console</div>
+        <div><span class="ok">&#10003;</span> Entry visible under Submitted Reviews</div>
+      </div>
+      <button type="button" id="submitted-done">Acknowledge</button>
+    </div>
+  </div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
@@ -516,12 +540,47 @@
     });
   }
 
+  function openForm() {
+    rvForm.classList.add("open");
+    document.getElementById("rv-cancel-row").style.display = "flex";
+    document.getElementById("rv-open-btn").style.display = "none";
+  }
+
+  function closeForm() {
+    rvForm.classList.remove("open");
+    document.getElementById("rv-cancel-row").style.display = "none";
+    document.getElementById("rv-open-btn").style.display = "inline-block";
+    rvForm.reset();
+    rvRegret.value = 3;
+    rvRegOut.textContent = "3";
+    setNow();
+  }
+
   function prefillFromFlag(flag) {
+    openForm();
     document.getElementById("rv-when").value = flag.date + "T20:00";
     document.getElementById("rv-where").value = flag.name;
-    document.getElementById("rv-where").focus();
-    document.getElementById("rv-where").scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => {
+      document.getElementById("rv-where").focus();
+      document.getElementById("rv-where").scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
   }
+
+  document.getElementById("rv-open-btn").addEventListener("click", () => {
+    openForm();
+    setTimeout(() => {
+      document.getElementById("rv-where").focus();
+      document.getElementById("rv-where").scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+  });
+  document.getElementById("rv-cancel-btn").addEventListener("click", closeForm);
+
+  // Submitted modal
+  const submittedModal = document.getElementById("submitted-modal");
+  document.getElementById("submitted-done").addEventListener("click", () => {
+    submittedModal.classList.remove("show");
+    refreshNotif();
+  });
 
   function refreshNotif() {
     const pending = pendingFlags();
@@ -625,13 +684,14 @@
       const saved = await Auth.addReview(entry);
       reviews.unshift(saved);
       reviews.sort((a, b) => new Date(b.when_at) - new Date(a.when_at));
-      rvForm.reset();
-      rvRegret.value = 3;
-      rvRegOut.textContent = "3";
-      setNow();
+      closeForm();
       render();
-      submitBtn.textContent = "Saved";
-      setTimeout(() => { submitBtn.disabled = false; submitBtn.textContent = "Submit Review"; }, 1000);
+      // Force-clear the notification immediately on successful submit
+      rvBadge.classList.add("hidden");
+      rvBanner.classList.remove("show");
+      submittedModal.classList.add("show");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Review";
     } catch (err) {
       alert("Submit failed: " + (err.message || err));
       submitBtn.disabled = false;
