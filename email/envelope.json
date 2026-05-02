@@ -1,0 +1,21 @@
+{
+  "to": "dhruv4183@gmail.com",
+  "from_name": "Sector 7-G Operations",
+  "from_address": "noreply@sector7g.io",
+  "reply_to": null,
+  "subject": "// Sector 7-G — Review Pending",
+  "preheader": "Today's field log has not been filed. Sign in to file your report.",
+  "html_template": "review-pending.html",
+  "text_template": "review-pending.txt",
+  "schedule": {
+    "trigger": "daily",
+    "local_time": "21:00",
+    "condition": "no review with when_at::date = today for this user"
+  },
+  "_notes": [
+    "from_address `noreply@sector7g.io` is fictional. Replace with a sender you own/verify (Resend, Mailgun, SES) before sending.",
+    "from_name is what most email clients display prominently — the actual address is hidden behind it in most inboxes.",
+    "When you wire delivery via Resend/Edge Function, set the From header literally as: From: Sector 7-G Operations <noreply@your-real-domain>",
+    "reply_to=null prevents the user from replying — clients show 'No reply' or just suppress the reply button."
+  ]
+}

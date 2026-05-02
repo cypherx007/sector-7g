@@ -1,0 +1,25 @@
+// SECTOR 7-G — SECURE CHANNEL
+// Classified · Reminder
+
+REVIEW PENDING
+// Field log not yet filed for today.
+
+Agent CP-07,
+
+Today's debrief has not been logged. Standard procedure requires
+a daily entry covering activity, mood, behaviour, conduct toward
+company, and post-event status.
+
+Sign in to the secure terminal to file your report:
+  https://cypherx007.github.io/sector-7g/
+
+------------------------------------------------------------
+// Status: PENDING
+// Window: 24h before flag in record
+// Channel: encrypted // E2E
+------------------------------------------------------------
+
+// Sector 7-G Operations
+// v 1.1.0 // Build 0427
+
+// Automated transmission. Do not reply.
