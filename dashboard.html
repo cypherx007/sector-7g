@@ -329,7 +329,7 @@
               <dt>Channel</dt>        <dd>Encrypted // E2E</dd>
               <dt>Theme</dt>          <dd>Matte / Typewriter</dd>
               <dt>Storage</dt>        <dd>Supabase Cloud</dd>
-              <dt>Build</dt>          <dd>v1.1.0 // 0427</dd>
+              <dt>Build</dt>          <dd id="settings-build">—</dd>
             </dl>
           </div>
 
@@ -339,7 +339,7 @@
 
     <footer class="footer">
       <span>// Encrypted Link</span>
-      <span>v 1.1.0 // Build 0427</span>
+      <span>v <span id="app-version">—</span> // Build <span id="app-build">—</span></span>
       <span>End-to-End</span>
     </footer>
   </div>
@@ -374,6 +374,13 @@
       reason: "Behaviour & alcohol consumption",
     },
   ];
+
+  // Version footer + Settings build line — single source of truth in config.js
+  const _v = window.APP_CONFIG?.APP_VERSION || "?";
+  const _b = window.APP_CONFIG?.APP_BUILD   || "?";
+  document.getElementById("app-version").textContent = _v;
+  document.getElementById("app-build").textContent   = _b;
+  document.getElementById("settings-build").textContent = `v${_v} // ${_b}`;
 
   let user = null;
   let reviews = [];

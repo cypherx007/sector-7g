@@ -52,7 +52,7 @@
 
     <footer class="footer">
       <span>// Encrypted Link</span>
-      <span>v 1.0.0 // Build 0427</span>
+      <span>v <span id="app-version">—</span> // Build <span id="app-build">—</span></span>
       <span>End-to-End</span>
     </footer>
   </div>
@@ -61,6 +61,9 @@
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script>
+  document.getElementById("app-version").textContent = window.APP_CONFIG?.APP_VERSION || "?";
+  document.getElementById("app-build").textContent   = window.APP_CONFIG?.APP_BUILD   || "?";
+
   Auth.requireAnon("dashboard.html");
 
   const text = "Request Access";
