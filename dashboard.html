@@ -123,7 +123,12 @@
           <div class="section" id="review">
             <div class="notif-banner" id="rv-banner">
               <span class="dot"></span>
-              <span>1 review pending — log today's session.</span>
+              <span id="rv-banner-text">1 review pending — log today's session.</span>
+            </div>
+
+            <div class="flags-wrap" id="rv-flags-wrap" style="display:none;">
+              <h3>// Flagged Events Awaiting Debrief</h3>
+              <div id="rv-flags"></div>
             </div>
 
             <form id="reviewForm" autocomplete="off">
@@ -335,6 +340,17 @@
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script>
+  // Flagged engagements that require a debrief.
+  // Add more entries here when new flags are issued.
+  const FLAGGED_EVENTS = [
+    {
+      id:     "naa-2026-04-30",
+      date:   "2026-04-30",
+      name:   "National Achievement Award (NAA)",
+      reason: "Behaviour & alcohol consumption",
+    },
+  ];
+
   let user = null;
   let reviews = [];
 
@@ -440,24 +456,80 @@
     try { return new Date(iso).toLocaleString(); } catch { return iso; }
   }
 
-  function refreshNotif() {
-    const today = new Date().toDateString();
-    const hasToday = reviews.some(r => {
-      try { return new Date(r.when_at).toDateString() === today; }
+  const rvBannerText = document.getElementById("rv-banner-text");
+  const rvFlagsWrap  = document.getElementById("rv-flags-wrap");
+  const rvFlags      = document.getElementById("rv-flags");
+
+  function isFlagResolved(flag) {
+    return reviews.some(r => {
+      try { return new Date(r.when_at).toISOString().slice(0, 10) === flag.date; }
       catch { return false; }
     });
-    if (hasToday) {
+  }
+
+  function pendingFlags() {
+    return FLAGGED_EVENTS.filter(f => !isFlagResolved(f));
+  }
+
+  function renderFlags() {
+    if (FLAGGED_EVENTS.length === 0) {
+      rvFlagsWrap.style.display = "none";
+      return;
+    }
+    rvFlagsWrap.style.display = "block";
+    rvFlags.innerHTML = FLAGGED_EVENTS.map(f => {
+      const resolved = isFlagResolved(f);
+      const stamp = resolved ? "Filed" : "Flagged";
+      const dateDmy = f.date.split("-").reverse().join(" / ");
+      return `
+        <div class="flag-card ${resolved ? "resolved" : ""}" data-id="${f.id}">
+          <span class="flag-stamp">${stamp}</span>
+          <h4>${escape(f.name)}</h4>
+          <dl class="meta">
+            <dt>Date</dt>     <dd>${escape(dateDmy)}</dd>
+            <dt>Reason</dt>   <dd>${escape(f.reason)}</dd>
+            <dt>Status</dt>   <dd>${resolved ? "Review filed" : "Pending — review not yet filed"}</dd>
+          </dl>
+          <button type="button" class="file-btn" data-id="${f.id}">File Review</button>
+          <span class="resolved-mark">// Debrief filed</span>
+        </div>
+      `;
+    }).join("");
+
+    rvFlags.querySelectorAll(".file-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const flag = FLAGGED_EVENTS.find(f => f.id === btn.dataset.id);
+        if (flag) prefillFromFlag(flag);
+      });
+    });
+  }
+
+  function prefillFromFlag(flag) {
+    document.getElementById("rv-when").value = flag.date + "T20:00";
+    document.getElementById("rv-where").value = flag.name;
+    document.getElementById("rv-where").focus();
+    document.getElementById("rv-where").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function refreshNotif() {
+    const pending = pendingFlags();
+    const count = pending.length;
+    if (count > 0) {
+      rvBadge.classList.remove("hidden");
+      rvBadge.textContent = String(count);
+      rvBanner.classList.add("show");
+      rvBannerText.textContent = count === 1
+        ? `1 review flagged — ${pending[0].name} ${pending[0].date.split("-").reverse().join("/")}.`
+        : `${count} reviews flagged — file your debriefs.`;
+    } else {
       rvBadge.classList.add("hidden");
       rvBanner.classList.remove("show");
-    } else {
-      rvBadge.classList.remove("hidden");
-      rvBadge.textContent = "1";
-      rvBanner.classList.add("show");
     }
   }
 
   function render() {
     rvCount.textContent = `(${reviews.length})`;
+    renderFlags();
     refreshNotif();
     if (reviews.length === 0) {
       rvList.innerHTML = `<div class="empty">// No reviews yet. Submit your first above.</div>`;

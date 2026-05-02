@@ -1,25 +1,36 @@
 // SECTOR 7-G — SECURE CHANNEL
-// Classified · Reminder
+// Classified · Flagged for Review
 
-REVIEW PENDING
-// Field log not yet filed for today.
+REVIEW PENDING — NAA 30/04/2026
+// Field debrief required — conduct assessment.
 
 Agent CP-07,
 
-Today's debrief has not been logged. Standard procedure requires
-a daily entry covering activity, mood, behaviour, conduct toward
-company, and post-event status.
+You have been flagged for review of conduct during the following
+sanctioned engagement:
 
-Sign in to the secure terminal to file your report:
+  EVENT     National Achievement Award (NAA)
+  DATE      30 / 04 / 2026
+  REASON    Behaviour & alcohol consumption
+  STATUS    PENDING — review not yet filed
+
+A field debrief must be filed within 24 hours covering:
+  - Location, company, drinks consumed, drink type
+  - Mood before  ->  mood after
+  - Behaviour and conduct toward company
+  - Conflict level, regretful words, embarrassment
+  - Sexual activity, memory clarity, regret level
+
+Sign in to file your report:
   https://cypherx007.github.io/sector-7g/
 
 ------------------------------------------------------------
-// Status: PENDING
-// Window: 24h before flag in record
+// Failure to file will be flagged in your record.
+// Window: 24 hours from receipt of this notice
 // Channel: encrypted // E2E
 ------------------------------------------------------------
 
 // Sector 7-G Operations
-// v 1.1.0 // Build 0427
+// v 1.2.0 // Build 0427
 
 // Automated transmission. Do not reply.
