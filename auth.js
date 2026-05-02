@@ -51,7 +51,12 @@
 
   async function requireAnon(redirectTo = "dashboard.html") {
     const u = await getUser();
-    if (u) window.location.replace(redirectTo);
+    if (u) {
+      const params = new URLSearchParams(window.location.search);
+      const flag = params.get("flag");
+      const dest = flag ? `${redirectTo}?flag=${encodeURIComponent(flag)}` : redirectTo;
+      window.location.replace(dest);
+    }
   }
 
   // ---- Reviews ----

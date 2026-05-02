@@ -7,6 +7,7 @@
   "preheader": "Flagged for review of conduct at NAA on 30/04/2026 — file your debrief.",
   "html_template": "review-pending.html",
   "text_template": "review-pending.txt",
+  "deep_link": "https://cypherx007.github.io/sector-7g/?email=cp07@sector7g.sec&flag=naa-2026-04-30",
   "flagged_event": {
     "id": "naa-2026-04-30",
     "date": "2026-04-30",

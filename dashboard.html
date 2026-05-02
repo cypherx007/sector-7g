@@ -375,6 +375,18 @@
       console.error("listReviews failed:", err);
     }
     render();
+
+    // Deep-link from the review-pending email: ?flag=<id> → jump to Review + prefill
+    const params = new URLSearchParams(window.location.search);
+    const flagId = params.get("flag");
+    if (flagId) {
+      const flag = FLAGGED_EVENTS.find(f => f.id === flagId);
+      if (flag && !isFlagResolved(flag)) {
+        activate("review");
+        setTimeout(() => prefillFromFlag(flag), 600);
+      }
+      history.replaceState({}, "", "dashboard.html");
+    }
   })();
 
   // Clock

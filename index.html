@@ -58,6 +58,16 @@
 <script>
   Auth.requireAnon("dashboard.html");
 
+  // Deep-link from the review-pending email: ?email=...&flag=...
+  const _params = new URLSearchParams(window.location.search);
+  const _emailParam = _params.get("email");
+  const _flagParam  = _params.get("flag");
+  if (_emailParam) {
+    const e = document.getElementById("email");
+    e.value = _emailParam;
+    setTimeout(() => document.getElementById("pass").focus(), 100);
+  }
+
   const text = "Agent Sign-In";
   const target = document.getElementById("typer");
   let i = 0;
@@ -95,7 +105,8 @@
         password: form.pass.value,
       });
       btn.textContent = "Access Granted";
-      window.location.href = "dashboard.html";
+      const dest = _flagParam ? `dashboard.html?flag=${encodeURIComponent(_flagParam)}` : "dashboard.html";
+      window.location.href = dest;
     } catch (err) {
       showMsg(`// ${err.message || "Access denied."}`, "error");
       btn.disabled = false;
