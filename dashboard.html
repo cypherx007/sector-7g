@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent // Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="frame">
+    <header class="header">
+      <span class="brand">// Sector 7-G</span>
+      <span>Authenticated <span class="blink">●</span></span>
+      <span id="clock">--:--:--</span>
+    </header>
+
+    <main class="stage">
+      <div class="shell">
+
+        <aside class="sidebar">
+          <h3>Console</h3>
+          <ul class="menu" id="menu">
+            <li><button data-target="dossier"  class="active">Dossier   <span class="tag">01</span></button></li>
+            <li><button data-target="missions">Missions  <span class="tag">02</span></button></li>
+            <li><button data-target="comms">Comms        <span class="tag">03</span></button></li>
+            <li><button data-target="archive">Archive    <span class="tag">04</span></button></li>
+            <li><button data-target="review"><span>Review</span><span class="rs"><span class="badge hidden" id="rv-badge">1</span><span class="tag">05</span></span></button></li>
+            <li><button data-target="settings">Settings  <span class="tag">06</span></button></li>
+          </ul>
+          <div class="signout">
+            <button id="signOutBtn">Sign Out</button>
+          </div>
+        </aside>
+
+        <section class="panel">
+          <span class="stamp" style="top:-18px; right:24px;">Active</span>
+          <h2><span id="typer" class="typed"></span></h2>
+          <p class="subtitle" id="panelSub">// Loading dossier...</p>
+
+          <!-- DOSSIER -->
+          <div class="section active" id="dossier">
+            <dl class="kv">
+              <dt>Codename</dt>      <dd id="dn-name">—</dd>
+              <dt>Agent ID</dt>      <dd id="dn-id">—</dd>
+              <dt>Email</dt>         <dd id="dn-email">—</dd>
+              <dt>Sector</dt>        <dd>7-G</dd>
+              <dt>Status</dt>        <dd>Active <span class="blink">●</span></dd>
+              <dt>Last Sign-In</dt>  <dd id="dn-signed">—</dd>
+            </dl>
+          </div>
+
+          <!-- MISSIONS -->
+          <div class="section" id="missions">
+            <ul class="list">
+              <li>
+                <div>
+                  <div class="title">Operation Iron Veil</div>
+                  <div class="meta">Brief 04-27 // Sector 9 // Eyes only</div>
+                </div>
+                <span class="priority hi">Priority A</span>
+              </li>
+              <li>
+                <div>
+                  <div class="title">Recon: Northern Grid</div>
+                  <div class="meta">Brief 04-25 // Drone sweep // Pending</div>
+                </div>
+                <span class="priority">Priority B</span>
+              </li>
+              <li>
+                <div>
+                  <div class="title">Asset Extraction — "Magpie"</div>
+                  <div class="meta">Brief 04-22 // 02:00 hrs window</div>
+                </div>
+                <span class="priority hi">Priority A</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- COMMS -->
+          <div class="section" id="comms">
+            <ul class="list">
+              <li>
+                <div>
+                  <div class="title">From Handler — "Confirm rendezvous 0400"</div>
+                  <div class="meta">Encrypted // 11 min ago</div>
+                </div>
+                <span class="priority hi">New</span>
+              </li>
+              <li>
+                <div>
+                  <div class="title">Field Note — Sector 9 weather window</div>
+                  <div class="meta">Routine // 2 hrs ago</div>
+                </div>
+                <span class="priority">Read</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- ARCHIVE -->
+          <div class="section" id="archive">
+            <ul class="list">
+              <li>
+                <div>
+                  <div class="title">Op. Pale Lantern — 2025</div>
+                  <div class="meta">Closed // Outcome: Success</div>
+                </div>
+                <span class="priority lo">Sealed</span>
+              </li>
+              <li>
+                <div>
+                  <div class="title">Op. Hollow Compass — 2024</div>
+                  <div class="meta">Closed // Outcome: Partial</div>
+                </div>
+                <span class="priority lo">Sealed</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- REVIEW -->
+          <div class="section" id="review">
+            <div class="notif-banner" id="rv-banner">
+              <span class="dot"></span>
+              <span>1 review pending — log today's session.</span>
+            </div>
+
+            <form id="reviewForm" autocomplete="off">
+              <div class="grid2">
+                <div class="field">
+                  <label for="rv-when">When</label>
+                  <input id="rv-when" type="datetime-local" required />
+                </div>
+                <div class="field">
+                  <label for="rv-where">Where</label>
+                  <input id="rv-where" type="text" placeholder="bar / home / club" required />
+                </div>
+
+                <div class="field">
+                  <label for="rv-with">Who were you with</label>
+                  <input id="rv-with" type="text" placeholder="alone / friends / partner" required />
+                </div>
+                <div class="field">
+                  <label for="rv-drinks">Drinks consumed</label>
+                  <input id="rv-drinks" type="number" min="0" max="50" placeholder="0" required />
+                </div>
+
+                <div class="field">
+                  <label for="rv-type">Drink type</label>
+                  <select id="rv-type" required>
+                    <option value="">— select —</option>
+                    <option>Beer</option>
+                    <option>Wine</option>
+                    <option>Whiskey</option>
+                    <option>Vodka</option>
+                    <option>Rum</option>
+                    <option>Tequila</option>
+                    <option>Gin</option>
+                    <option>Mixed / cocktails</option>
+                    <option>Multiple</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="rv-mood-before">Mood before</label>
+                  <select id="rv-mood-before" required>
+                    <option value="">— select —</option>
+                    <option>Happy</option>
+                    <option>Excited</option>
+                    <option>Anxious</option>
+                    <option>Sad</option>
+                    <option>Stressed</option>
+                    <option>Angry</option>
+                    <option>Lonely</option>
+                    <option>Numb</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="rv-mood-after">Mood after</label>
+                  <select id="rv-mood-after" required>
+                    <option value="">— select —</option>
+                    <option>Happy</option>
+                    <option>Calm</option>
+                    <option>Anxious</option>
+                    <option>Sad</option>
+                    <option>Angry</option>
+                    <option>Sick</option>
+                    <option>Numb</option>
+                    <option>Don't remember</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="rv-behaviour">Behaviour</label>
+                  <select id="rv-behaviour" required>
+                    <option value="">— select —</option>
+                    <option>Calm</option>
+                    <option>Talkative</option>
+                    <option>Loud</option>
+                    <option>Flirty</option>
+                    <option>Aggressive</option>
+                    <option>Reckless</option>
+                    <option>Withdrawn</option>
+                    <option>Blackout</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="rv-sex">Sexual activity</label>
+                  <select id="rv-sex" required>
+                    <option value="">— select —</option>
+                    <option>None</option>
+                    <option>Kissing</option>
+                    <option>With partner</option>
+                    <option>With someone new</option>
+                    <option>With ex</option>
+                    <option>Don't remember</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="rv-partner">With whom (optional)</label>
+                  <input id="rv-partner" type="text" placeholder="name / nickname / —" />
+                </div>
+
+                <div class="field">
+                  <label for="rv-memory">Memory clarity</label>
+                  <select id="rv-memory" required>
+                    <option value="">— select —</option>
+                    <option>Full</option>
+                    <option>Mostly clear</option>
+                    <option>Patchy</option>
+                    <option>Major gaps</option>
+                    <option>Total blackout</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="rv-regret">Regret level <span id="rv-regret-out" style="color:var(--accent);">3</span> / 5</label>
+                  <div class="range-row">
+                    <span>0</span>
+                    <input id="rv-regret" type="range" min="0" max="5" step="1" value="3" />
+                    <span>5</span>
+                  </div>
+                </div>
+
+                <div class="field full">
+                  <label for="rv-notes">Notes</label>
+                  <textarea id="rv-notes" placeholder="anything else — triggers, lessons, who to thank, who to apologise to..."></textarea>
+                </div>
+              </div>
+
+              <button type="submit">Submit Review</button>
+            </form>
+
+            <div class="entries-header">
+              <span>// Submitted Reviews <span id="rv-count">(0)</span></span>
+              <button type="button" class="clear" id="rv-clear">Clear All</button>
+            </div>
+            <div id="rv-list"></div>
+          </div>
+
+          <!-- SETTINGS -->
+          <div class="section" id="settings">
+            <dl class="kv">
+              <dt>Channel</dt>        <dd>Encrypted // E2E</dd>
+              <dt>Theme</dt>          <dd>Matte / Typewriter</dd>
+              <dt>Storage</dt>        <dd>Supabase Cloud</dd>
+              <dt>Build</dt>          <dd>v1.1.0 // 0427</dd>
+            </dl>
+          </div>
+
+        </section>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <span>// Encrypted Link</span>
+      <span>v 1.1.0 // Build 0427</span>
+      <span>End-to-End</span>
+    </footer>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script>
+  let user = null;
+  let reviews = [];
+
+  (async () => {
+    user = await Auth.requireAuth("index.html");
+    if (!user) return;
+
+    const agentId = user.user_metadata?.agent_id || "Agent";
+
+    document.getElementById("dn-name").textContent  = "Agent " + agentId.toUpperCase();
+    document.getElementById("dn-id").textContent    = agentId;
+    document.getElementById("dn-email").textContent = user.email || "—";
+    document.getElementById("dn-signed").textContent = user.last_sign_in_at
+      ? new Date(user.last_sign_in_at).toLocaleString() : "—";
+
+    typeTitle(META.dossier.title);
+    document.getElementById("panelSub").textContent = META.dossier.sub;
+
+    try {
+      reviews = await Auth.listReviews();
+    } catch (err) {
+      console.error("listReviews failed:", err);
+    }
+    render();
+  })();
+
+  // Clock
+  const clock = document.getElementById("clock");
+  const pad = n => String(n).padStart(2, "0");
+  (function tick() {
+    const d = new Date();
+    clock.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    setTimeout(tick, 1000);
+  })();
+
+  // Section switching
+  const META = {
+    dossier:  { title: "Dossier",  sub: "// Verified field record." },
+    missions: { title: "Missions", sub: "// Active assignments." },
+    comms:    { title: "Comms",    sub: "// Encrypted inbox." },
+    archive:  { title: "Archive",  sub: "// Sealed operations." },
+    review:   { title: "Review",   sub: "// Field log — alcohol & behaviour." },
+    settings: { title: "Settings", sub: "// Console preferences." },
+  };
+
+  const typer = document.getElementById("typer");
+  const sub = document.getElementById("panelSub");
+  let typeTimer = null;
+  function typeTitle(text) {
+    clearTimeout(typeTimer);
+    let i = 0;
+    (function step() {
+      if (i <= text.length) {
+        typer.textContent = text.slice(0, i++);
+        typeTimer = setTimeout(step, 60);
+      }
+    })();
+  }
+
+  function activate(target) {
+    document.querySelectorAll(".section").forEach(s => s.classList.toggle("active", s.id === target));
+    document.querySelectorAll("#menu button").forEach(b => b.classList.toggle("active", b.dataset.target === target));
+    const meta = META[target] || { title: target, sub: "" };
+    typeTitle(meta.title);
+    sub.textContent = meta.sub;
+  }
+
+  document.querySelectorAll("#menu button").forEach(btn => {
+    btn.addEventListener("click", () => activate(btn.dataset.target));
+  });
+
+  document.getElementById("signOutBtn").addEventListener("click", async () => {
+    await Auth.signOut();
+    window.location.href = "index.html";
+  });
+
+  // ===== Review form =====
+  const rvForm    = document.getElementById("reviewForm");
+  const rvList    = document.getElementById("rv-list");
+  const rvCount   = document.getElementById("rv-count");
+  const rvRegret  = document.getElementById("rv-regret");
+  const rvRegOut  = document.getElementById("rv-regret-out");
+  const rvClear   = document.getElementById("rv-clear");
+  const rvBadge   = document.getElementById("rv-badge");
+  const rvBanner  = document.getElementById("rv-banner");
+
+  rvRegret.addEventListener("input", () => rvRegOut.textContent = rvRegret.value);
+
+  function setNow() {
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - off * 60000);
+    document.getElementById("rv-when").value = local.toISOString().slice(0, 16);
+  }
+  setNow();
+
+  function escape(s) {
+    return String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+  function fmtWhen(iso) {
+    try { return new Date(iso).toLocaleString(); } catch { return iso; }
+  }
+
+  function refreshNotif() {
+    const today = new Date().toDateString();
+    const hasToday = reviews.some(r => {
+      try { return new Date(r.when_at).toDateString() === today; }
+      catch { return false; }
+    });
+    if (hasToday) {
+      rvBadge.classList.add("hidden");
+      rvBanner.classList.remove("show");
+    } else {
+      rvBadge.classList.remove("hidden");
+      rvBadge.textContent = "1";
+      rvBanner.classList.add("show");
+    }
+  }
+
+  function render() {
+    rvCount.textContent = `(${reviews.length})`;
+    refreshNotif();
+    if (reviews.length === 0) {
+      rvList.innerHTML = `<div class="empty">// No reviews yet. Submit your first above.</div>`;
+      return;
+    }
+    rvList.innerHTML = reviews.map(r => {
+      const regretCls = r.regret >= 4 ? "regret hi" : "regret";
+      const partner = r.partner ? ` // with ${escape(r.partner)}` : "";
+      const notes = r.notes ? `<div class="notes">"${escape(r.notes)}"</div>` : "";
+      return `
+        <div class="entry">
+          <div class="top">
+            <span>${escape(fmtWhen(r.when_at))} // ${escape(r.where_at)}</span>
+            <span class="${regretCls}">Regret ${r.regret}/5</span>
+          </div>
+          <div class="body">
+            <strong>${escape(r.drinks)} × ${escape(r.drink_type)}</strong> with ${escape(r.with_who)}.
+            Mood ${escape(r.mood_before)} → ${escape(r.mood_after)}.
+            Behaviour: ${escape(r.behaviour)}. Memory: ${escape(r.memory)}.
+            Sexual activity: ${escape(r.sex)}${partner}.
+          </div>
+          <div class="tags">
+            <span class="tag">${escape(r.behaviour)}</span>
+            <span class="tag">${escape(r.memory)}</span>
+            <span class="tag">${escape(r.sex)}</span>
+          </div>
+          ${notes}
+          <button type="button" class="del" data-id="${r.id}">Delete</button>
+        </div>
+      `;
+    }).join("");
+
+    rvList.querySelectorAll(".del").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        btn.disabled = true; btn.textContent = "Deleting...";
+        try {
+          await Auth.deleteReview(id);
+          reviews = reviews.filter(r => r.id !== id);
+          render();
+        } catch (err) {
+          alert("Delete failed: " + (err.message || err));
+          btn.disabled = false; btn.textContent = "Delete";
+        }
+      });
+    });
+  }
+
+  rvForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const submitBtn = rvForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Transmitting...";
+
+    const whenLocal = document.getElementById("rv-when").value;
+    const entry = {
+      when_at:     new Date(whenLocal).toISOString(),
+      where_at:    document.getElementById("rv-where").value.trim(),
+      with_who:    document.getElementById("rv-with").value.trim(),
+      drinks:      parseInt(document.getElementById("rv-drinks").value, 10) || 0,
+      drink_type:  document.getElementById("rv-type").value,
+      mood_before: document.getElementById("rv-mood-before").value,
+      mood_after:  document.getElementById("rv-mood-after").value,
+      behaviour:   document.getElementById("rv-behaviour").value,
+      sex:         document.getElementById("rv-sex").value,
+      partner:     document.getElementById("rv-partner").value.trim(),
+      memory:      document.getElementById("rv-memory").value,
+      regret:      parseInt(rvRegret.value, 10),
+      notes:       document.getElementById("rv-notes").value.trim(),
+    };
+
+    try {
+      const saved = await Auth.addReview(entry);
+      reviews.unshift(saved);
+      reviews.sort((a, b) => new Date(b.when_at) - new Date(a.when_at));
+      rvForm.reset();
+      rvRegret.value = 3;
+      rvRegOut.textContent = "3";
+      setNow();
+      render();
+      submitBtn.textContent = "Saved";
+      setTimeout(() => { submitBtn.disabled = false; submitBtn.textContent = "Submit Review"; }, 1000);
+    } catch (err) {
+      alert("Submit failed: " + (err.message || err));
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit Review";
+    }
+  });
+
+  rvClear.addEventListener("click", async () => {
+    if (!confirm("Delete ALL reviews from the cloud? This cannot be undone.")) return;
+    rvClear.disabled = true; rvClear.textContent = "Clearing...";
+    try {
+      await Auth.clearAllReviews();
+      reviews = [];
+      render();
+    } catch (err) {
+      alert("Clear failed: " + (err.message || err));
+    } finally {
+      rvClear.disabled = false; rvClear.textContent = "Clear All";
+    }
+  });
+</script>
+</body>
+</html>

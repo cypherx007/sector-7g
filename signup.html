@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent // Request Access</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="frame">
+    <header class="header">
+      <span class="brand">// Sector 7-G</span>
+      <span>Secure Channel <span class="blink">●</span></span>
+      <span id="clock">--:--:--</span>
+    </header>
+
+    <main class="stage">
+      <section class="card">
+        <span class="stamp">New Recruit</span>
+        <h1><span id="typer" class="typed"></span></h1>
+        <p class="subtitle">// Submit credentials for clearance review.</p>
+
+        <div id="msg" class="message"></div>
+
+        <form id="signupForm" autocomplete="off">
+          <div class="field">
+            <label for="agent">Agent ID</label>
+            <input id="agent" name="agent" type="text" placeholder="cp07" required maxlength="20" autocomplete="off" spellcheck="false" />
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="agent@sector7g.io" required autocomplete="off" spellcheck="false" />
+          </div>
+
+          <div class="field">
+            <label for="pass">Passphrase</label>
+            <input id="pass" name="pass" type="password" placeholder="•••••••••• (min 6)" required minlength="6" />
+          </div>
+
+          <div class="row">
+            <span>Already cleared? <a href="index.html">Sign in</a></span>
+          </div>
+
+          <button type="submit" id="submitBtn">Request Clearance</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>// Encrypted Link</span>
+      <span>v 1.0.0 // Build 0427</span>
+      <span>End-to-End</span>
+    </footer>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script>
+  Auth.requireAnon("dashboard.html");
+
+  const text = "Request Access";
+  const target = document.getElementById("typer");
+  let i = 0;
+  (function type() {
+    if (i <= text.length) {
+      target.textContent = text.slice(0, i++);
+      setTimeout(type, 90);
+    }
+  })();
+
+  const clock = document.getElementById("clock");
+  const pad = n => String(n).padStart(2, "0");
+  function tick() {
+    const d = new Date();
+    clock.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+  tick(); setInterval(tick, 1000);
+
+  const msg = document.getElementById("msg");
+  function showMsg(t, kind) {
+    msg.textContent = t;
+    msg.className = `message show ${kind}`;
+  }
+
+  const form = document.getElementById("signupForm");
+  const btn = document.getElementById("submitBtn");
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    msg.className = "message";
+    btn.disabled = true;
+    btn.textContent = "Transmitting...";
+    try {
+      const result = await Auth.signUp({
+        email: form.email.value.trim(),
+        password: form.pass.value,
+        agentId: form.agent.value.trim(),
+      });
+      if (result.session) {
+        btn.textContent = "Clearance Granted";
+        window.location.href = "dashboard.html";
+      } else {
+        showMsg("// Account created. Sign in to continue.", "ok");
+        btn.textContent = "Submitted";
+        setTimeout(() => (window.location.href = "index.html"), 1500);
+      }
+    } catch (err) {
+      showMsg(`// ${err.message || "Submission rejected."}`, "error");
+      btn.disabled = false;
+      btn.textContent = "Request Clearance";
+    }
+  });
+</script>
+</body>
+</html>
