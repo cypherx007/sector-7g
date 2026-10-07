@@ -539,6 +539,98 @@ input[type="range"]::-webkit-slider-thumb {
 .entry .del.archive:hover,
 .entry .del.restore:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
+/* Email — inbox list + reader */
+.mail-layout { display: grid; grid-template-columns: 290px 1fr; gap: 22px; align-items: start; }
+@media (max-width: 900px) { .mail-layout { grid-template-columns: 1fr; } }
+.mail-list { display: grid; gap: 10px; align-content: start; }
+.mail-item {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px dashed var(--line);
+  padding: 12px 14px;
+  margin: 0;
+  cursor: pointer;
+}
+.mail-item:hover { border-color: var(--ink); }
+.mail-item.open { border: 1px solid var(--ink); background: rgba(26, 26, 26, 0.03); }
+.mail-item .subj { font-size: 14px; letter-spacing: 0.03em; line-height: 1.35; }
+.mail-item .meta {
+  display: flex; justify-content: space-between; gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.mail-item .pill { border: 1px solid var(--ink); color: var(--ink); padding: 0 6px; }
+.mail-item .pill.hi { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+.mail-reader {
+  display: grid; gap: 16px;
+  border: 1px solid var(--ink);
+  padding: 22px 26px;
+  box-shadow: 8px 8px 0 rgba(26, 26, 26, 0.08);
+  background: var(--bg);
+}
+.mail-reader.blank { display: none; }
+.mail-reader .mail-head {
+  display: grid; grid-template-columns: 72px 1fr; gap: 4px 12px;
+  padding-bottom: 12px; border-bottom: 1px dashed var(--line);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.mail-reader .mail-head dd { margin: 0; color: var(--ink); text-transform: none; letter-spacing: 0.05em; word-break: break-word; }
+.mail-reader .classified {
+  justify-self: start;
+  border: 2px solid var(--accent); color: var(--accent);
+  padding: 3px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+}
+.mail-reader.resolved .classified { border-color: var(--ink-soft); color: var(--ink-soft); }
+.mail-reader h3 { margin: 0; font-size: 20px; letter-spacing: 0.08em; text-transform: uppercase; }
+.mail-reader p, .mail-reader li { font-size: 14px; line-height: 1.6; margin: 0; }
+.mail-reader ul { margin: 0 0 0 20px; padding: 0; }
+.mail-reader .event {
+  display: grid; grid-template-columns: 80px 1fr; gap: 0 10px;
+  border: 1px solid var(--ink);
+  background: rgba(26, 26, 26, 0.02);
+  padding: 14px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; line-height: 1.9;
+}
+.mail-reader .event dt { color: var(--ink-soft); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
+.mail-reader .event dd { margin: 0; }
+.mail-reader .event .pending { color: var(--accent); }
+.mail-reader .event .filed { color: var(--ink); }
+.mail-reader .mail-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.mail-reader .primary {
+  margin: 0;
+  padding: 11px 26px;
+  background: var(--ink); color: var(--bg);
+  border: 1px solid var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase;
+  cursor: pointer;
+}
+.mail-reader .primary:hover { background: var(--accent); border-color: var(--accent); }
+.mail-reader .secondary {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--ink-soft); text-decoration: none; border-bottom: 1px dashed var(--line);
+}
+.mail-reader .secondary:hover { color: var(--ink); border-color: var(--ink); }
+.mail-reader .fine {
+  border: 1px dashed var(--line);
+  padding: 10px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; line-height: 1.6; color: var(--ink-soft);
+}
+
 /* Sealed (archived) reviews */
 .entry.sealed { border-style: solid; opacity: 0.85; position: relative; }
 .entry .sealed-stamp {
