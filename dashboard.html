@@ -26,9 +26,10 @@
             <li><button data-target="dossier"  class="active">Dossier   <span class="tag">01</span></button></li>
             <li><button data-target="missions">Missions  <span class="tag">02</span></button></li>
             <li><button data-target="comms">Comms        <span class="tag">03</span></button></li>
-            <li><button data-target="archive"><span>Archive</span><span class="rs"><span class="badge hidden" id="ar-badge">0</span><span class="tag">04</span></span></button></li>
-            <li><button data-target="review"><span>Review</span><span class="rs"><span class="badge hidden" id="rv-badge">1</span><span class="tag">05</span></span></button></li>
-            <li><button data-target="settings">Settings  <span class="tag">06</span></button></li>
+            <li><button data-target="email"><span>Email</span><span class="rs"><span class="badge hidden" id="em-badge">0</span><span class="tag">04</span></span></button></li>
+            <li><button data-target="archive"><span>Archive</span><span class="rs"><span class="badge hidden" id="ar-badge">0</span><span class="tag">05</span></span></button></li>
+            <li><button data-target="review"><span>Review</span><span class="rs"><span class="badge hidden" id="rv-badge">1</span><span class="tag">06</span></span></button></li>
+            <li><button data-target="settings">Settings  <span class="tag">07</span></button></li>
           </ul>
           <div class="signout">
             <button id="signOutBtn">Sign Out</button>
@@ -97,6 +98,14 @@
                 <span class="priority">Read</span>
               </li>
             </ul>
+          </div>
+
+          <!-- EMAIL -->
+          <div class="section" id="email">
+            <div class="mail-layout">
+              <div class="mail-list" id="em-list"></div>
+              <div class="mail-reader" id="em-reader"></div>
+            </div>
           </div>
 
           <!-- ARCHIVE -->
@@ -376,10 +385,12 @@
   // Add more entries here when new flags are issued.
   const FLAGGED_EVENTS = [
     {
-      id:     "naa-2026-04-30",
-      date:   "2026-04-30",
-      name:   "National Achievement Award (NAA)",
-      reason: "Behaviour & alcohol consumption",
+      id:       "naa-2026-04-30",
+      date:     "2026-04-30",
+      name:     "National Achievement Award (NAA)",
+      reason:   "Behaviour & alcohol consumption",
+      // Original transmission, as sent. Shown as "View original" in the Email tab.
+      template: "email/review-pending.html",
     },
   ];
 
@@ -442,6 +453,7 @@
     dossier:  { title: "Dossier",  sub: "// Verified field record." },
     missions: { title: "Missions", sub: "// Active assignments." },
     comms:    { title: "Comms",    sub: "// Encrypted inbox." },
+    email:    { title: "Email",    sub: "// Secure correspondence." },
     archive:  { title: "Archive",  sub: "// Sealed operations." },
     review:   { title: "Review",   sub: "// Field log — alcohol & behaviour." },
     settings: { title: "Settings", sub: "// Console preferences." },
@@ -513,6 +525,13 @@
   const rvBannerText = document.getElementById("rv-banner-text");
   const rvFlagsWrap  = document.getElementById("rv-flags-wrap");
   const rvFlags      = document.getElementById("rv-flags");
+
+  function reviewForFlag(flag) {
+    return reviews.find(r => {
+      try { return new Date(r.when_at).toISOString().slice(0, 10) === flag.date; }
+      catch { return false; }
+    }) || null;
+  }
 
   function isFlagResolved(flag) {
     return reviews.some(r => {
@@ -592,6 +611,130 @@
     }, 80);
   });
   document.getElementById("rv-cancel-btn").addEventListener("click", closeForm);
+
+  // ===== Email =====
+  // One secure notice per flagged event, mirroring the review-pending
+  // transmission in email/. Status is live: "New" until a review for that
+  // date exists, then "Filed".
+  const emList   = document.getElementById("em-list");
+  const emReader = document.getElementById("em-reader");
+  const emBadge  = document.getElementById("em-badge");
+  let openMailId = null;
+
+  function shortName(flag) {
+    const m = flag.name.match(/\(([^)]+)\)/);
+    return m ? m[1] : flag.name;
+  }
+
+  function fmtDateDMY(iso) {
+    return iso.split("-").reverse().join(" / ");
+  }
+
+  function mailFor(flag) {
+    const review = reviewForFlag(flag);
+    const dmy = flag.date.split("-").reverse().join("/");
+    return {
+      id:        flag.id,
+      flag,
+      review,
+      resolved:  !!review,
+      from:      "Sector 7-G Operations <noreply@sector7g.io>",
+      to:        user?.email || "—",
+      subject:   `// Sector 7-G — Review Pending — ${shortName(flag)} ${dmy}`,
+      preheader: `Flagged for review of conduct at ${shortName(flag)} on ${dmy} — file your debrief.`,
+      date:      flag.date,
+    };
+  }
+
+  function renderEmail() {
+    const mails = FLAGGED_EVENTS.map(mailFor).sort((a, b) => b.date.localeCompare(a.date));
+    const unread = mails.filter(m => !m.resolved).length;
+    emBadge.textContent = String(unread);
+    emBadge.classList.toggle("hidden", unread === 0);
+
+    if (mails.length === 0) {
+      emList.innerHTML   = `<div class="empty">// No transmissions.</div>`;
+      emReader.innerHTML = "";
+      emReader.classList.add("blank");
+      return;
+    }
+    emReader.classList.remove("blank");
+
+    const open = mails.find(m => m.id === openMailId) || mails[0];
+    openMailId = open.id;
+
+    emList.innerHTML = mails.map(m => `
+      <button type="button" class="mail-item ${m.id === open.id ? "open" : ""}" data-id="${m.id}">
+        <div class="meta">
+          <span>${escape(m.from.split(" <")[0])}</span>
+          <span class="pill ${m.resolved ? "" : "hi"}">${m.resolved ? "Filed" : "New"}</span>
+        </div>
+        <div class="subj">${escape(m.subject)}</div>
+        <div class="meta"><span>${escape(fmtDateDMY(m.date))}</span></div>
+      </button>
+    `).join("");
+
+    emList.querySelectorAll(".mail-item").forEach(btn => {
+      btn.addEventListener("click", () => { openMailId = btn.dataset.id; renderEmail(); });
+    });
+
+    const agentId = (user?.user_metadata?.agent_id || "agent").toUpperCase();
+    const f = open.flag;
+    const status = open.resolved
+      ? `<span class="filed">FILED</span> — review on record${open.review?.archived ? " (sealed in Archive)" : ""}`
+      : `<span class="pending">PENDING</span> — review not yet filed`;
+    const primary = open.resolved
+      ? `<button type="button" class="primary" id="em-primary" data-go="${open.review?.archived ? "archive" : "review"}">View Filed Review</button>`
+      : `<button type="button" class="primary" id="em-primary" data-file="${f.id}">File Report</button>`;
+    const original = f.template
+      ? `<a class="secondary" href="${f.template}" target="_blank" rel="noopener">View original transmission &rarr;</a>`
+      : "";
+
+    emReader.className = `mail-reader ${open.resolved ? "resolved" : ""}`;
+    emReader.innerHTML = `
+      <dl class="mail-head">
+        <dt>From</dt>    <dd>${escape(open.from)}</dd>
+        <dt>To</dt>      <dd>${escape(open.to)}</dd>
+        <dt>Date</dt>    <dd>${escape(fmtDateDMY(open.date))}</dd>
+        <dt>Subject</dt> <dd>${escape(open.subject)}</dd>
+      </dl>
+      <span class="classified">Classified &middot; ${open.resolved ? "Review Filed" : "Flagged for Review"}</span>
+      <h3>Review ${open.resolved ? "Filed" : "Pending"} &mdash; ${escape(shortName(f))} ${escape(open.date.split("-").reverse().join("/"))}</h3>
+      <p>Agent <strong>${escape(agentId)}</strong>,</p>
+      <p>You have been flagged for review of conduct during the following sanctioned engagement:</p>
+      <dl class="event">
+        <dt>Event</dt>  <dd><strong>${escape(f.name)}</strong></dd>
+        <dt>Date</dt>   <dd>${escape(fmtDateDMY(f.date))}</dd>
+        <dt>Reason</dt> <dd>${escape(f.reason)}</dd>
+        <dt>Status</dt> <dd>${status}</dd>
+      </dl>
+      <p>A field debrief must be filed within 24 hours covering:</p>
+      <ul>
+        <li>Location, company, drinks consumed, drink type</li>
+        <li>Mood before &rarr; mood after</li>
+        <li>Behaviour and conduct toward company</li>
+        <li>Conflict level, regretful words, embarrassment</li>
+        <li>Sexual activity, memory clarity, regret level</li>
+      </ul>
+      <div class="mail-actions">${primary}${original}</div>
+      <div class="fine">
+        <div>// Failure to file will be flagged in your record.</div>
+        <div>// Window: 24 hours from receipt of this notice</div>
+        <div>// Channel: encrypted // E2E</div>
+      </div>
+    `;
+
+    const pBtn = document.getElementById("em-primary");
+    pBtn.addEventListener("click", () => {
+      if (pBtn.dataset.file) {
+        const flag = FLAGGED_EVENTS.find(x => x.id === pBtn.dataset.file);
+        activate("review");
+        if (flag) setTimeout(() => prefillFromFlag(flag), 300);
+      } else {
+        activate(pBtn.dataset.go || "review");
+      }
+    });
+  }
 
   // Submitted modal
   const submittedModal = document.getElementById("submitted-modal");
@@ -706,6 +849,7 @@
 
     renderFlags();
     refreshNotif();
+    renderEmail();
 
     rvList.innerHTML = active.length
       ? active.map(entryHTML).join("")
