@@ -98,6 +98,20 @@
     return data;
   }
 
+  // Move a review into / out of the Archive. Requires the `archived`
+  // column — see supabase/migrations/0001_reviews_archived.sql.
+  async function setReviewArchived(id, archived) {
+    if (!client) throw new Error("Supabase not configured.");
+    const { data, error } = await client
+      .from("reviews")
+      .update({ archived })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
   async function deleteReview(id) {
     if (!client) throw new Error("Supabase not configured.");
     const { error } = await client.from("reviews").delete().eq("id", id);
@@ -115,6 +129,6 @@
   window.Auth = {
     client, ready,
     signUp, signIn, signOut, getUser, requireAuth, requireAnon,
-    listReviews, addReview, deleteReview, clearAllReviews,
+    listReviews, addReview, setReviewArchived, deleteReview, clearAllReviews,
   };
 })();

@@ -26,7 +26,7 @@
             <li><button data-target="dossier"  class="active">Dossier   <span class="tag">01</span></button></li>
             <li><button data-target="missions">Missions  <span class="tag">02</span></button></li>
             <li><button data-target="comms">Comms        <span class="tag">03</span></button></li>
-            <li><button data-target="archive">Archive    <span class="tag">04</span></button></li>
+            <li><button data-target="archive"><span>Archive</span><span class="rs"><span class="badge hidden" id="ar-badge">0</span><span class="tag">04</span></span></button></li>
             <li><button data-target="review"><span>Review</span><span class="rs"><span class="badge hidden" id="rv-badge">1</span><span class="tag">05</span></span></button></li>
             <li><button data-target="settings">Settings  <span class="tag">06</span></button></li>
           </ul>
@@ -101,6 +101,14 @@
 
           <!-- ARCHIVE -->
           <div class="section" id="archive">
+            <div class="entries-header">
+              <span>// Sealed Reviews <span id="ar-count">(0)</span></span>
+            </div>
+            <div id="ar-list"></div>
+
+            <div class="entries-header">
+              <span>// Sealed Operations</span>
+            </div>
             <ul class="list">
               <li>
                 <div>
@@ -473,6 +481,9 @@
   // ===== Review form =====
   const rvForm    = document.getElementById("reviewForm");
   const rvList    = document.getElementById("rv-list");
+  const arList    = document.getElementById("ar-list");
+  const arCount   = document.getElementById("ar-count");
+  const arBadge   = document.getElementById("ar-badge");
   const rvCount   = document.getElementById("rv-count");
   const rvRegret  = document.getElementById("rv-regret");
   const rvRegOut  = document.getElementById("rv-regret-out");
@@ -605,46 +616,70 @@
     }
   }
 
-  function render() {
-    rvCount.textContent = `(${reviews.length})`;
-    renderFlags();
-    refreshNotif();
-    if (reviews.length === 0) {
-      rvList.innerHTML = `<div class="empty">// No reviews yet. Submit your first above.</div>`;
-      return;
-    }
-    rvList.innerHTML = reviews.map(r => {
-      const regretCls = r.regret >= 4 ? "regret hi" : "regret";
-      const partner = r.partner ? ` // with ${escape(r.partner)}` : "";
-      const notes = r.notes ? `<div class="notes">"${escape(r.notes)}"</div>` : "";
-      return `
-        <div class="entry">
-          <div class="top">
-            <span>${escape(fmtWhen(r.when_at))} // ${escape(r.where_at)}</span>
-            <span class="${regretCls}">Regret ${r.regret}/5</span>
-          </div>
-          <div class="body">
-            <strong>${escape(r.drinks)} × ${escape(r.drink_type)}</strong> with ${escape(r.with_who)}.
-            Mood ${escape(r.mood_before)} → ${escape(r.mood_after)}.
-            Behaviour: ${escape(r.behaviour)}. Treated them: ${escape(r.treatment || "—")}.
-            Conflict: ${escape(r.conflict || "—")}. Regretful words: ${escape(r.regretted_words || "—")}.
-            Embarrassment: ${escape(r.embarrassment || "—")}. Memory: ${escape(r.memory)}.
-            Sexual activity: ${escape(r.sex)}${partner}.
-          </div>
-          <div class="tags">
-            <span class="tag">${escape(r.behaviour)}</span>
-            ${r.treatment ? `<span class="tag">${escape(r.treatment)}</span>` : ""}
-            ${r.conflict && r.conflict !== "None" ? `<span class="tag">${escape(r.conflict)}</span>` : ""}
-            <span class="tag">${escape(r.memory)}</span>
-            <span class="tag">${escape(r.sex)}</span>
-          </div>
-          ${notes}
+  // One review card. Active reviews get Archive + Delete; sealed ones get Restore + Delete.
+  function entryHTML(r) {
+    const sealed = !!r.archived;
+    const regretCls = r.regret >= 4 ? "regret hi" : "regret";
+    const partner = r.partner ? ` // with ${escape(r.partner)}` : "";
+    const notes = r.notes ? `<div class="notes">"${escape(r.notes)}"</div>` : "";
+    const stamp = sealed ? `<span class="sealed-stamp">Sealed</span>` : "";
+    const moveBtn = sealed
+      ? `<button type="button" class="del restore" data-id="${r.id}">Restore</button>`
+      : `<button type="button" class="del archive" data-id="${r.id}">Archive</button>`;
+    return `
+      <div class="entry ${sealed ? "sealed" : ""}">
+        <div class="top">
+          <span>${escape(fmtWhen(r.when_at))} // ${escape(r.where_at)}</span>
+          <span class="${regretCls}">Regret ${r.regret}/5</span>
+        </div>
+        ${stamp}
+        <div class="body">
+          <strong>${escape(r.drinks)} × ${escape(r.drink_type)}</strong> with ${escape(r.with_who)}.
+          Mood ${escape(r.mood_before)} → ${escape(r.mood_after)}.
+          Behaviour: ${escape(r.behaviour)}. Treated them: ${escape(r.treatment || "—")}.
+          Conflict: ${escape(r.conflict || "—")}. Regretful words: ${escape(r.regretted_words || "—")}.
+          Embarrassment: ${escape(r.embarrassment || "—")}. Memory: ${escape(r.memory)}.
+          Sexual activity: ${escape(r.sex)}${partner}.
+        </div>
+        <div class="tags">
+          <span class="tag">${escape(r.behaviour)}</span>
+          ${r.treatment ? `<span class="tag">${escape(r.treatment)}</span>` : ""}
+          ${r.conflict && r.conflict !== "None" ? `<span class="tag">${escape(r.conflict)}</span>` : ""}
+          <span class="tag">${escape(r.memory)}</span>
+          <span class="tag">${escape(r.sex)}</span>
+        </div>
+        ${notes}
+        <div class="actions">
+          ${moveBtn}
           <button type="button" class="del" data-id="${r.id}">Delete</button>
         </div>
-      `;
-    }).join("");
+      </div>
+    `;
+  }
 
-    rvList.querySelectorAll(".del").forEach(btn => {
+  function bindEntryButtons(root) {
+    root.querySelectorAll(".del.archive, .del.restore").forEach(btn => {
+      const toArchive = btn.classList.contains("archive");
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        const label = btn.textContent;
+        btn.disabled = true; btn.textContent = toArchive ? "Sealing..." : "Restoring...";
+        try {
+          const saved = await Auth.setReviewArchived(id, toArchive);
+          reviews = reviews.map(r => r.id === id ? { ...r, ...saved } : r);
+          render();
+        } catch (err) {
+          const msg = err.message || String(err);
+          const hint = /archived/i.test(msg) && /column|schema/i.test(msg)
+            ? "\n\nThe `archived` column is missing — run supabase/migrations/0001_reviews_archived.sql in the Supabase SQL Editor."
+            : "";
+          alert((toArchive ? "Archive" : "Restore") + " failed: " + msg + hint);
+          btn.disabled = false; btn.textContent = label;
+        }
+      });
+    });
+
+    root.querySelectorAll(".del:not(.archive):not(.restore)").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-id");
         btn.disabled = true; btn.textContent = "Deleting...";
@@ -658,6 +693,29 @@
         }
       });
     });
+  }
+
+  function render() {
+    const active = reviews.filter(r => !r.archived);
+    const sealed = reviews.filter(r => r.archived);
+
+    rvCount.textContent = `(${active.length})`;
+    arCount.textContent = `(${sealed.length})`;
+    arBadge.textContent = String(sealed.length);
+    arBadge.classList.toggle("hidden", sealed.length === 0);
+
+    renderFlags();
+    refreshNotif();
+
+    rvList.innerHTML = active.length
+      ? active.map(entryHTML).join("")
+      : `<div class="empty">// No reviews yet. Submit your first above.</div>`;
+    arList.innerHTML = sealed.length
+      ? sealed.map(entryHTML).join("")
+      : `<div class="empty">// No sealed reviews. Use "Archive" on a submitted review to seal it here.</div>`;
+
+    bindEntryButtons(rvList);
+    bindEntryButtons(arList);
   }
 
   rvForm.addEventListener("submit", async e => {
@@ -707,7 +765,7 @@
   });
 
   rvClear.addEventListener("click", async () => {
-    if (!confirm("Delete ALL reviews from the cloud? This cannot be undone.")) return;
+    if (!confirm("Delete ALL reviews from the cloud — including sealed ones in the Archive? This cannot be undone.")) return;
     rvClear.disabled = true; rvClear.textContent = "Clearing...";
     try {
       await Auth.clearAllReviews();
