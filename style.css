@@ -605,6 +605,15 @@ input[type="range"]::-webkit-slider-thumb {
 }
 .mail-reader .event dt { color: var(--ink-soft); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; }
 .mail-reader .event dd { margin: 0; }
+.mail-reader .event.wide { grid-template-columns: 118px 1fr; }
+.mail-reader .lede {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.08em; color: var(--ink-soft);
+  margin-top: -8px;
+}
+.mail-item.unread .subj { font-weight: 700; }
+.mail-reader .primary:disabled { background: transparent; color: var(--ink); cursor: default; }
+.mail-reader .primary:disabled:hover { background: transparent; border-color: var(--ink); }
 .mail-reader .event .pending { color: var(--accent); }
 .mail-reader .event .filed { color: var(--ink); }
 .mail-reader .mail-actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
