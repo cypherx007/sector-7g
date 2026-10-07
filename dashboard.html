@@ -613,13 +613,74 @@
   document.getElementById("rv-cancel-btn").addEventListener("click", closeForm);
 
   // ===== Email =====
-  // One secure notice per flagged event, mirroring the review-pending
-  // transmission in email/. Status is live: "New" until a review for that
-  // date exists, then "Filed".
+  // Two kinds of transmission:
+  //  - flag notices: one per FLAGGED_EVENT, mirroring email/review-pending.html.
+  //    Status is live — "New" until a review exists for that date, then "Filed".
+  //  - standalone notices: MESSAGES below. "New" until opened; some carry an
+  //    acknowledgement action (e.g. confirm attendance) that is remembered locally.
+  const MESSAGES = [
+    {
+      id:      "inc-cp07-2026-10-07",
+      date:    "2026-10-07",
+      time:    "21:30",
+      from:    "Incident Response Team <ir@sector7g.io>",
+      subject: "// CONFIDENTIAL — Technical Investigation Meeting — INC-CP07",
+      stamp:   "Confidential · Security Incident / Need-to-Know",
+      heading: "Technical Investigation Meeting — INC-CP07",
+      lede:    "// Cyber Security Incident Response & Digital Forensic Investigation.",
+      intro: [
+        "You are formally requested to attend a confidential technical investigation meeting concerning a recently identified security incident involving infrastructure containing highly sensitive and potentially GDPR-protected information.",
+        "The meeting forms part of an active Cyber Security Incident Response and Digital Forensic Investigation following the detection of anomalous activity within the affected server environment.",
+        "Preliminary technical indicators have identified activity requiring further investigation, potentially involving unauthorised server access, anomalous authentication events, privilege escalation, abnormal service or process execution, and/or unauthorised interaction with protected data repositories. Investigation is continuing to establish the complete attack path, affected assets, persistence mechanisms, and potential scope of data exposure.",
+        "The technical review may include analysis of:",
+      ],
+      bullets: [
+        "Authentication, access-control and privilege-escalation telemetry",
+        "Server, application, firewall, VPN and endpoint security logs",
+        "SIEM/EDR alerts and associated event correlation",
+        "Network traffic and anomalous ingress/egress activity",
+        "Administrative and service-account activity",
+        "File-system, database and configuration changes",
+        "Indicators of Compromise (IoCs) and suspicious process execution",
+        "Potential persistence, lateral movement or credential compromise",
+        "Data-access and potential data-exfiltration indicators",
+        "Forensic timelines and preservation of relevant digital evidence",
+        "Scope and impact assessment concerning personal data protected under the UK GDPR and Data Protection Act 2018",
+      ],
+      detailsTitle: "Meeting Details",
+      details: [
+        ["Date",           "07 / 10 / 2026"],
+        ["Time",           "21:30"],
+        ["Location",       "Secure meeting link — to be transmitted via encrypted channel"],
+        ["Reference",      "INC-CP07"],
+        ["Classification", "CONFIDENTIAL — SECURITY INCIDENT / NEED-TO-KNOW"],
+      ],
+      outro: [
+        "Your attendance is requested to assist with establishing an accurate technical chronology of events and determining whether additional containment, forensic acquisition, credential rotation, infrastructure isolation, remediation, or regulatory escalation is required.",
+        "Until the investigation has concluded, information relating to this incident — including technical findings, server details, logs, screenshots, credentials, affected systems, forensic artefacts, personal data and investigation discussions — must be handled on a strict need-to-know basis and in accordance with applicable organisational security and data-protection procedures.",
+        "Please do not independently modify, delete, restore, reconfigure or otherwise interfere with potentially affected systems, accounts, logs or data unless specifically authorised by the Incident Response team, as such actions may alter or destroy evidence relevant to the investigation.",
+        "This invitation should not be interpreted as an allegation of wrongdoing against any individual. The purpose of the meeting is to support technical fact-finding, incident reconstruction, containment and assessment of the organisation's security and data-protection obligations.",
+        "Please confirm your attendance at the earliest opportunity.",
+      ],
+      action: { label: "Confirm Attendance", done: "Attendance Confirmed" },
+      fine: [
+        "// CONFIDENTIALITY NOTICE: This communication relates to an active information-security investigation and may contain security-sensitive and legally protected information.",
+        "// Distribution, reproduction or disclosure outside authorised personnel is prohibited unless expressly approved through the appropriate organisational process.",
+      ],
+    },
+  ];
+
   const emList   = document.getElementById("em-list");
   const emReader = document.getElementById("em-reader");
   const emBadge  = document.getElementById("em-badge");
   let openMailId = null;
+
+  // Per-device read / acknowledged state for standalone notices.
+  const emState = {
+    key(kind, id) { return `s7g:em:${kind}:${id}`; },
+    get(kind, id) { try { return localStorage.getItem(this.key(kind, id)) === "1"; } catch { return false; } },
+    set(kind, id) { try { localStorage.setItem(this.key(kind, id), "1"); } catch {} },
+  };
 
   function shortName(flag) {
     const m = flag.name.match(/\(([^)]+)\)/);
@@ -630,54 +691,48 @@
     return iso.split("-").reverse().join(" / ");
   }
 
-  function mailFor(flag) {
+  function mailForFlag(flag) {
     const review = reviewForFlag(flag);
     const dmy = flag.date.split("-").reverse().join("/");
     return {
-      id:        flag.id,
+      kind:     "flag",
+      id:       flag.id,
       flag,
       review,
-      resolved:  !!review,
-      from:      "Sector 7-G Operations <noreply@sector7g.io>",
-      to:        user?.email || "—",
-      subject:   `// Sector 7-G — Review Pending — ${shortName(flag)} ${dmy}`,
-      preheader: `Flagged for review of conduct at ${shortName(flag)} on ${dmy} — file your debrief.`,
-      date:      flag.date,
+      resolved: !!review,
+      unread:   !review,
+      from:     "Sector 7-G Operations <noreply@sector7g.io>",
+      to:       user?.email || "—",
+      subject:  `// Sector 7-G — Review Pending — ${shortName(flag)} ${dmy}`,
+      date:     flag.date,
+      sortKey:  flag.date + "T00:00",
     };
   }
 
-  function renderEmail() {
-    const mails = FLAGGED_EVENTS.map(mailFor).sort((a, b) => b.date.localeCompare(a.date));
-    const unread = mails.filter(m => !m.resolved).length;
-    emBadge.textContent = String(unread);
-    emBadge.classList.toggle("hidden", unread === 0);
+  function mailForMessage(msg) {
+    const acked = !!msg.action && emState.get("ack", msg.id);
+    return {
+      kind:    "notice",
+      id:      msg.id,
+      msg,
+      acked,
+      unread:  !emState.get("read", msg.id),
+      from:    msg.from,
+      to:      user?.email || "—",
+      subject: msg.subject,
+      date:    msg.date,
+      sortKey: msg.date + "T" + (msg.time || "00:00"),
+    };
+  }
 
-    if (mails.length === 0) {
-      emList.innerHTML   = `<div class="empty">// No transmissions.</div>`;
-      emReader.innerHTML = "";
-      emReader.classList.add("blank");
-      return;
-    }
-    emReader.classList.remove("blank");
+  function pillFor(m) {
+    if (m.kind === "flag") return m.resolved ? ["Filed", ""] : ["New", "hi"];
+    if (m.acked)  return ["Confirmed", ""];
+    if (m.unread) return ["New", "hi"];
+    return ["Read", ""];
+  }
 
-    const open = mails.find(m => m.id === openMailId) || mails[0];
-    openMailId = open.id;
-
-    emList.innerHTML = mails.map(m => `
-      <button type="button" class="mail-item ${m.id === open.id ? "open" : ""}" data-id="${m.id}">
-        <div class="meta">
-          <span>${escape(m.from.split(" <")[0])}</span>
-          <span class="pill ${m.resolved ? "" : "hi"}">${m.resolved ? "Filed" : "New"}</span>
-        </div>
-        <div class="subj">${escape(m.subject)}</div>
-        <div class="meta"><span>${escape(fmtDateDMY(m.date))}</span></div>
-      </button>
-    `).join("");
-
-    emList.querySelectorAll(".mail-item").forEach(btn => {
-      btn.addEventListener("click", () => { openMailId = btn.dataset.id; renderEmail(); });
-    });
-
+  function readerFlag(open) {
     const agentId = (user?.user_metadata?.agent_id || "agent").toUpperCase();
     const f = open.flag;
     const status = open.resolved
@@ -689,15 +744,7 @@
     const original = f.template
       ? `<a class="secondary" href="${f.template}" target="_blank" rel="noopener">View original transmission &rarr;</a>`
       : "";
-
-    emReader.className = `mail-reader ${open.resolved ? "resolved" : ""}`;
-    emReader.innerHTML = `
-      <dl class="mail-head">
-        <dt>From</dt>    <dd>${escape(open.from)}</dd>
-        <dt>To</dt>      <dd>${escape(open.to)}</dd>
-        <dt>Date</dt>    <dd>${escape(fmtDateDMY(open.date))}</dd>
-        <dt>Subject</dt> <dd>${escape(open.subject)}</dd>
-      </dl>
+    return `
       <span class="classified">Classified &middot; ${open.resolved ? "Review Filed" : "Flagged for Review"}</span>
       <h3>Review ${open.resolved ? "Filed" : "Pending"} &mdash; ${escape(shortName(f))} ${escape(open.date.split("-").reverse().join("/"))}</h3>
       <p>Agent <strong>${escape(agentId)}</strong>,</p>
@@ -723,13 +770,104 @@
         <div>// Channel: encrypted // E2E</div>
       </div>
     `;
+  }
+
+  function readerNotice(open) {
+    const agentId = (user?.user_metadata?.agent_id || "agent").toUpperCase();
+    const m = open.msg;
+    const paras = arr => (arr || []).map(p => `<p>${escape(p)}</p>`).join("");
+    const bullets = m.bullets?.length ? `<ul>${m.bullets.map(b => `<li>${escape(b)}</li>`).join("")}</ul>` : "";
+    const details = m.details?.length ? `
+      ${m.detailsTitle ? `<p><strong>${escape(m.detailsTitle)}</strong></p>` : ""}
+      <dl class="event wide">${m.details.map(([k, v]) => `<dt>${escape(k)}</dt><dd>${escape(v)}</dd>`).join("")}</dl>` : "";
+    const action = m.action
+      ? (open.acked
+          ? `<button type="button" class="primary" id="em-primary" disabled>&#10003; ${escape(m.action.done)}</button>`
+          : `<button type="button" class="primary" id="em-primary" data-ack="${m.id}">${escape(m.action.label)}</button>`)
+      : "";
+    const fine = m.fine?.length ? `<div class="fine">${m.fine.map(l => `<div>${escape(l)}</div>`).join("")}</div>` : "";
+    return `
+      <span class="classified">${escape(m.stamp || "Classified")}</span>
+      <h3>${escape(m.heading)}</h3>
+      ${m.lede ? `<div class="lede">${escape(m.lede)}</div>` : ""}
+      <p>Dear <strong>${escape(agentId)}</strong>,</p>
+      ${paras(m.intro)}
+      ${bullets}
+      ${details}
+      ${paras(m.outro)}
+      ${action ? `<div class="mail-actions">${action}</div>` : ""}
+      ${fine}
+    `;
+  }
+
+  function renderEmail() {
+    const mails = [
+      ...MESSAGES.map(mailForMessage),
+      ...FLAGGED_EVENTS.map(mailForFlag),
+    ].sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+
+    const unread = mails.filter(m => m.unread).length;
+    emBadge.textContent = String(unread);
+    emBadge.classList.toggle("hidden", unread === 0);
+
+    if (mails.length === 0) {
+      emList.innerHTML   = `<div class="empty">// No transmissions.</div>`;
+      emReader.innerHTML = "";
+      emReader.className = "mail-reader blank";
+      return;
+    }
+
+    const open = mails.find(m => m.id === openMailId) || mails[0];
+    openMailId = open.id;
+
+    emList.innerHTML = mails.map(m => {
+      const [label, cls] = pillFor(m);
+      return `
+      <button type="button" class="mail-item ${m.id === open.id ? "open" : ""} ${m.unread ? "unread" : ""}" data-id="${m.id}">
+        <div class="meta">
+          <span>${escape(m.from.split(" <")[0])}</span>
+          <span class="pill ${cls}">${label}</span>
+        </div>
+        <div class="subj">${escape(m.subject)}</div>
+        <div class="meta"><span>${escape(fmtDateDMY(m.date))}${m.kind === "notice" && m.msg.time ? " // " + escape(m.msg.time) : ""}</span></div>
+      </button>`;
+    }).join("");
+
+    emList.querySelectorAll(".mail-item").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openMailId = btn.dataset.id;
+        const m = mails.find(x => x.id === openMailId);
+        if (m?.kind === "notice") emState.set("read", m.id);
+        renderEmail();
+      });
+    });
+
+    const dateLine = open.kind === "notice" && open.msg.time
+      ? `${fmtDateDMY(open.date)} // ${open.msg.time}`
+      : fmtDateDMY(open.date);
+
+    emReader.className = `mail-reader ${open.kind === "flag" && open.resolved ? "resolved" : ""} ${open.kind === "notice" ? "notice" : ""}`;
+    emReader.innerHTML = `
+      <dl class="mail-head">
+        <dt>From</dt>    <dd>${escape(open.from)}</dd>
+        <dt>To</dt>      <dd>${escape(open.to)}</dd>
+        <dt>Date</dt>    <dd>${escape(dateLine)}</dd>
+        <dt>Subject</dt> <dd>${escape(open.subject)}</dd>
+      </dl>
+      ${open.kind === "flag" ? readerFlag(open) : readerNotice(open)}
+    `;
 
     const pBtn = document.getElementById("em-primary");
+    if (!pBtn) return;
     pBtn.addEventListener("click", () => {
       if (pBtn.dataset.file) {
         const flag = FLAGGED_EVENTS.find(x => x.id === pBtn.dataset.file);
         activate("review");
         if (flag) setTimeout(() => prefillFromFlag(flag), 300);
+      } else if (pBtn.dataset.ack) {
+        emState.set("ack", pBtn.dataset.ack);
+        emState.set("read", pBtn.dataset.ack);
+        renderEmail();
       } else {
         activate(pBtn.dataset.go || "review");
       }
